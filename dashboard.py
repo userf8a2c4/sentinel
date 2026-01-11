@@ -1,113 +1,79 @@
-"""
-Proyecto C.E.N.T.I.N.E.L. - Dashboard de Auditoría Electoral
-Versión: 3.0.3 (2026)
-"""
-
-import json
-import logging
-import os
-from datetime import datetime
-from hashlib import sha256
-from pathlib import Path
-
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
+import pandas as pd
+import os
+from pathlib import Path
 from sklearn.ensemble import IsolationForest
+from datetime import datetime
 
 # --- Configuración de Rutas ---
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-HASH_DIR = BASE_DIR / "hashes"
-
-# Asegurar que existan los directorios
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-HASH_DIR.mkdir(parents=True, exist_ok=True)
 
 def load_latest_data():
-    """Busca y carga el último archivo JSON en /data"""
+    """Carga datos de forma segura sin importar el nombre de las columnas"""
     if not DATA_DIR.exists():
         return None
     files = list(DATA_DIR.glob("snapshot_*.json"))
     if not files:
         return None
-    # Ordenar por fecha de creación para tener el más reciente
     latest_file = max(files, key=os.path.getctime)
     try:
-        with open(latest_file, "r", encoding="utf-8") as f:
-            payload = json.load(f)
-        if isinstance(payload, list):
-            return pd.DataFrame(payload)
-        if isinstance(payload, dict):
-            if "data" in payload and isinstance(payload["data"], list):
-                return pd.DataFrame(payload["data"])
-            return pd.DataFrame([payload])
-        st.error(f"Error cargando el archivo {latest_file.name}: formato no soportado.")
-        return None
-    except Exception as e:
-        st.error(f"Error cargando el archivo {latest_file.name}: {e}")
+        return pd.read_json(latest_file)
+    except Exception:
         return None
 
 def detect_anomalies(df):
-    """Detecta anomalías estadísticas en los votos"""
-    if df is None or df.empty:
-        return pd.DataFrame()
+    """Análisis de IA agnóstico: solo busca saltos numéricos sospechosos"""
+    # Buscamos columnas numéricas automáticamente para no depender de nombres fijos
+    numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+    if len(numeric_cols) < 2:
+        return pd.DataFrame(), 100
     
-    # Columnas esperadas según la plantilla de Sentinel
-    cols_interes = ['porcentaje_escrutado', 'votos_totales']
-    existentes = [c for c in cols_interes if c in df.columns]
-    
-    if len(existentes) < 2:
-        return pd.DataFrame()
-
-    features = df[existentes].fillna(0)
     model = IsolationForest(contamination=0.05, random_state=42)
-    df['anomaly_score'] = model.fit_predict(features)
+    # Usamos las primeras dos columnas numéricas que encuentre (usualmente votos y progreso)
+    df['anomaly_score'] = model.fit_predict(df[numeric_cols[:2]].fillna(0))
     
-    return df[df['anomaly_score'] == -1]
+    anomalias = (df['anomaly_score'] == -1).sum()
+    score = max(0, 100 - (anomalias / len(df) * 100))
+    return df[df['anomaly_score'] == -1], score
 
-# --- Interfaz de Usuario ---
-st.set_page_config(page_title="C.E.N.T.I.N.E.L. Dashboard", layout="wide")
+# --- Interfaz ---
+st.set_page_config(page_title="C.E.N.T.I.N.E.L. Audit", layout="wide")
 
-st.markdown("""
-    <h1 style='text-align: center;'>Proyecto C.E.N.T.I.N.E.L.</h1>
-    <p style='text-align: center;'>Auditoría Ciudadana Independiente - Honduras 2028/2029</p>
-    <hr>
-""", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Proyecto C.E.N.T.I.N.E.L.</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Vigilancia Estadística en Tiempo Real</p>", unsafe_allow_html=True)
 
 data = load_latest_data()
 
 if data is not None:
-    st.sidebar.header("⚙️ Info Técnica")
-    st.sidebar.write(f"**Snapshot:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    # Ejecutar IA de forma imparcial
+    alertas, integridad = detect_anomalies(data)
     
-    st.header("🚨 Sistema de Alertas de Integridad")
-    alertas = detect_anomalies(data)
-    
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        if not alertas.empty:
-            st.error(f"Se detectaron {len(alertas)} anomalías.")
-            st.metric("Nivel de Riesgo", "ELEVADO", delta="Anomalía Detectada", delta_color="inverse")
-        else:
-            st.success("No se detectan anomalías estadísticas.")
-            st.metric("Nivel de Riesgo", "NORMAL", delta="Estadísticamente Seguro")
+    # Métricas de Integridad
+    c1, c2 = st.columns(2)
+    with c1:
+        st.metric("Índice de Integridad Estadística", f"{int(integridad)}%")
+    with c2:
+        status = "ESTABLE" if integridad > 90 else "BAJO REVISIÓN"
+        st.metric("Estado del Sistema", status)
 
-    with col2:
-        if not alertas.empty:
-            st.dataframe(alertas.drop(columns=['anomaly_score'], errors='ignore'))
-            
-    st.header("📊 Visualización de Datos")
-    if 'departamento' in data.columns:
-        fig = px.bar(data, x='departamento', y='votos_totales', title="Votos por Departamento")
-        st.plotly_chart(fig, use_container_width=True)
+    # Visualización Automática de Candidatos
+    # Identifica columnas de votos (votos_...) para graficar sin nombres grabados
+    candidatos = [c for c in data.columns if 'votos' in c.lower() and c.lower() != 'votos_totales']
+    
+    if candidatos:
+        st.subheader("Análisis de Tendencias (Datos Públicos)")
+        votos_totales = data[candidatos].sum().sort_values(ascending=False)
+        st.bar_chart(votos_totales)
 
-    with st.expander("🔍 Ver datos crudos"):
-        st.dataframe(data)
+    if not alertas.empty:
+        st.header("🔍 Registro de Anomalías Detectadas")
+        st.warning("La IA detectó patrones fuera de la norma estadística en los siguientes registros:")
+        st.dataframe(alertas.drop(columns=['anomaly_score'], errors='ignore'))
+    else:
+        st.success("✅ No se detectan anomalías estadísticas en los datos públicos actuales.")
 else:
-    st.warning("⏳ Esperando datos... GitHub Actions debe generar el primer snapshot.")
+    st.info("📡 Sincronizando... Esperando que el motor de GitHub genere el primer snapshot de datos.")
 
 st.markdown("---")
-st.caption("PROYECTO C.E.N.T.I.N.E.L. | Preparado para Elecciones 2029")
+st.caption(f"C.E.N.T.I.N.E.L. | Protocolo de Neutralidad Técnica | {datetime.now().year}")
