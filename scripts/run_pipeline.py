@@ -148,15 +148,20 @@ def send_alert_if_configured(
         print("[i] Alertas omitidas: no hay errores críticos")
         return
 
-    telegram_config = config.get("alerts", {}).get("telegram", {})
-    if not telegram_config.get("enabled", False):
-        print("[i] Alertas deshabilitadas: Telegram no está habilitado")
+    x_config = config.get("alerts", {}).get("x", {})
+    if not x_config.get("enabled", False):
+        print("[i] Alertas deshabilitadas: X no está habilitado")
         return
 
-    token = telegram_config.get("bot_token")
-    chat_id = telegram_config.get("chat_id")
-    if not token or not chat_id:
-        print("[i] Alertas deshabilitadas: faltan credenciales de Telegram")
+    if not all(
+        [
+            x_config.get("api_key"),
+            x_config.get("api_secret"),
+            x_config.get("access_token"),
+            x_config.get("access_token_secret"),
+        ]
+    ):
+        print("[i] Alertas deshabilitadas: faltan credenciales de X")
         return
 
     summary_text = summary_path.read_text(encoding="utf-8")
@@ -173,7 +178,7 @@ def send_alert_if_configured(
     run_command(
         [
             sys.executable,
-            "scripts/post_to_telegram.py",
+            "scripts/post_to_x.py",
             summary_text,
             str(latest_hash_file),
         ],

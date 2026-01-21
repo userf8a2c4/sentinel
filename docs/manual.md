@@ -48,23 +48,6 @@ Salida:
 - `analysis_results.parquet` (si hay soporte en el entorno)
 - `anomalies_report.json`
 
-### Dashboard local
-```bash
-pip install -r requirements.txt
-streamlit run dashboard.py
-```
-
-### Publicación en Telegram
-Configura `alerts.telegram` en `config/config.yaml`:
-- `enabled`
-- `bot_token`
-- `chat_id`
-
-Ejemplo:
-```bash
-python scripts/post_to_telegram.py "Reporte técnico" "hashes/snapshot_XX.sha256" neutral
-```
-
 ### Publicación en X
 Configura `alerts.x` en `config/config.yaml`:
 - `enabled`
@@ -132,22 +115,6 @@ Outputs:
 - `analysis_results.json`
 - `analysis_results.parquet` (if supported)
 - `anomalies_report.json`
-
-### Local dashboard
-```bash
-streamlit run dashboard.py
-```
-
-### Telegram publishing
-Configure `alerts.telegram` in `config/config.yaml`:
-- `enabled`
-- `bot_token`
-- `chat_id`
-
-Example:
-```bash
-python scripts/post_to_telegram.py "Technical report" "hashes/snapshot_XX.sha256" neutral
-```
 
 ### X publishing
 Configure `alerts.x` in `config/config.yaml`:

@@ -74,14 +74,6 @@ python-versions = "*"
 files = []
 
 [[package]]
-name = "streamlit"
-version = "1.31.0"
-description = ""
-optional = false
-python-versions = "*"
-files = []
-
-[[package]]
 name = "fpdf2"
 version = "2.7.0"
 description = ""
@@ -92,14 +84,6 @@ files = []
 [[package]]
 name = "kaleido"
 version = "0.2.1"
-description = ""
-optional = false
-python-versions = "*"
-files = []
-
-[[package]]
-name = "python-telegram-bot"
-version = "20.7"
 description = ""
 optional = false
 python-versions = "*"

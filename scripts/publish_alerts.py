@@ -11,20 +11,19 @@ MIN_ANOMALIES = int(os.getenv("MIN_ANOMALIES", "1"))
 MIN_NEGATIVE_DELTA = int(os.getenv("MIN_NEGATIVE_DELTA", "1"))
 
 
-def resolve_publishers() -> tuple[Any, Any]:
-    """Resuelve módulos de publicación desde scripts locales.
+def resolve_publisher() -> Any:
+    """Resuelve el módulo de publicación desde scripts locales.
 
     English:
-        Resolves publisher modules from local scripts.
+        Resolves the publisher module from local scripts.
     """
     script_dir = os.path.dirname(__file__)
     if script_dir not in sys.path:
         sys.path.append(script_dir)
 
-    import post_to_telegram
     import post_to_x
 
-    return post_to_telegram, post_to_x
+    return post_to_x
 
 
 def critical_rules() -> set[str]:
@@ -106,11 +105,11 @@ def log_publication(entry: dict[str, Any]) -> None:
 
 
 def publish(summary: str, hash_path: str | None, channels: list[str]) -> None:
-    post_to_telegram, post_to_x = resolve_publishers()
+    post_to_x = resolve_publisher()
     timestamp = datetime.datetime.utcnow().isoformat() + "Z"
     message = build_message(summary)
     message_hash = hash_message(message)
-    file_hash = post_to_telegram.get_stored_hash(hash_path) if hash_path else None
+    file_hash = post_to_x.get_stored_hash(hash_path) if hash_path else None
 
     for channel in channels:
         entry = {
@@ -124,11 +123,7 @@ def publish(summary: str, hash_path: str | None, channels: list[str]) -> None:
             "summary": summary,
         }
         try:
-            if channel == "telegram":
-                post_to_telegram.send_message(
-                    message, stored_hash=file_hash, template_name="neutral"
-                )
-            elif channel == "x":
+            if channel == "x":
                 formatted = post_to_x.format_as_neutral(message, file_hash)
                 post_to_x.send_message(post_to_x.truncate_for_x(formatted))
             else:
@@ -168,7 +163,7 @@ def main() -> None:
 
     summary = build_summary(filtered)
     hash_path = sys.argv[1] if len(sys.argv) > 1 else None
-    channels = sys.argv[2:] if len(sys.argv) > 2 else ["telegram", "x"]
+    channels = sys.argv[2:] if len(sys.argv) > 2 else ["x"]
     publish(summary, hash_path, channels)
 
 

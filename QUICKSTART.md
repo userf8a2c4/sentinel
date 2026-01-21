@@ -22,13 +22,9 @@
    poetry run python scripts/download_and_hash.py
    poetry run python scripts/analyze_rules.py
    ```
-7. Lanza el dashboard:
+7. (Opcional) Publica alertas en X:
    ```bash
-   poetry run streamlit run dashboard.py
-   ```
-8. (Opcional) Ejecuta el bot:
-   ```bash
-   TELEGRAM_TOKEN=... poetry run python bot.py
+   poetry run python scripts/post_to_x.py "Reporte técnico" "hashes/snapshot_XX.sha256"
    ```
 
 ## English
@@ -53,11 +49,7 @@
    poetry run python scripts/download_and_hash.py
    poetry run python scripts/analyze_rules.py
    ```
-7. Launch the dashboard:
+7. (Optional) Publish alerts to X:
    ```bash
-   poetry run streamlit run dashboard.py
-   ```
-8. (Optional) Run the bot:
-   ```bash
-   TELEGRAM_TOKEN=... poetry run python bot.py
+   poetry run python scripts/post_to_x.py "Technical report" "hashes/snapshot_XX.sha256"
    ```
