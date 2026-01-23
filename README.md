@@ -58,7 +58,22 @@ El único punto de control editable es **`command_center/`**.
 - **centinel_engine/**: motor separado en Node.js para anclaje de hashes y publicación en L2.
 - **scripts/**: automatizaciones para descarga, hash, análisis y reportes.
 - **docs/**: documentación técnica y guías de operación.
-- **Nota de operación:** la interacción es por scripts/CLI; no hay UI de Streamlit incluida.
+- **dashboard/**: UI Streamlit opcional para la capa de abstracción global (v5).
+
+### Capa v5 global (abstracción multi-país)
+Se agregó una capa opcional para operar Centinel de forma global y configurable por país, sin alterar el núcleo existente. Esta capa vive en `src/`, `config/default.yaml` y `config/countries/`.
+
+Flujo recomendado:
+1. Copia `config/countries/hn.yaml` para crear un nuevo país (por ejemplo `mx.yaml`).
+2. Ajusta `datasource.sources`, `field_map` y `blockchain` según tu fuente oficial.
+3. Ejecuta el runner:
+   ```bash
+   python run.py --country HN
+   ```
+4. Inicia el dashboard opcional:
+   ```bash
+   streamlit run dashboard/app.py
+   ```
 
 ### Primeros pasos (5 minutos)
 1. Instala dependencias con Poetry:
@@ -184,7 +199,22 @@ The only editable control point is **`command_center/`**.
 - **centinel_engine/**: separate Node.js engine for hash anchoring and L2 publishing.
 - **scripts/**: automations for downloads, hashing, analysis, and reporting.
 - **docs/**: technical documentation and operating guides.
-- **Operational note:** interaction is via scripts/CLI; there is no bundled Streamlit UI.
+- **dashboard/**: optional Streamlit UI for the global abstraction layer (v5).
+
+### Global v5 abstraction layer
+An optional abstraction layer enables multi-country deployments without changing the existing core. It lives in `src/`, `config/default.yaml`, and `config/countries/`.
+
+Recommended flow:
+1. Copy `config/countries/hn.yaml` to create a new country (e.g., `mx.yaml`).
+2. Adjust `datasource.sources`, `field_map`, and `blockchain` for your official data source.
+3. Run the snapshot loop:
+   ```bash
+   python run.py --country HN
+   ```
+4. Launch the optional dashboard:
+   ```bash
+   streamlit run dashboard/app.py
+   ```
 
 ### Quick start (5 minutes)
 1. Install dependencies with Poetry:
