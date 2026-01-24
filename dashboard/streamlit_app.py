@@ -744,9 +744,10 @@ def build_indicator_figures(
     votes_data: pd.DataFrame,
     activity_data: pd.DataFrame,
     copy_map: dict,
-) -> tuple[Optional["go.Figure"], Optional["go.Figure"], Optional["go.Figure"], Optional["go.Figure"]]:
-    if not PLOTLY_AVAILABLE:
-        return None, None, None, None
+) -> tuple[object, object, object, object]:
+    import plotly.express as px
+    import plotly.graph_objects as go
+
     benford_fig = go.Figure()
     benford_fig.add_trace(
         go.Bar(
@@ -1002,9 +1003,7 @@ with col_right:
 
 st.markdown(f"### {copy['indicator_title']}")
 st.markdown(f"<div class='note'>{copy['indicator_subtitle']}</div>", unsafe_allow_html=True)
-if not PLOTLY_AVAILABLE:
-    st.warning("Gráficas no disponibles: instala la dependencia 'plotly' para habilitarlas.")
-else:
+try:
     benford_fig, last_digit_fig, votes_fig, heat_fig = build_indicator_figures(
         benford_df, last_digit_df, votes_df, activity_df, copy
     )
@@ -1012,6 +1011,8 @@ else:
     st.plotly_chart(last_digit_fig, use_container_width=True)
     st.plotly_chart(votes_fig, use_container_width=True)
     st.plotly_chart(heat_fig, use_container_width=True)
+except ModuleNotFoundError:
+    st.warning("Gráficas no disponibles: instala la dependencia 'plotly' para habilitarlas.")
 
 st.markdown(f"### {copy['snapshots_title']}")
 st.dataframe(styled_status(snapshots_df), width="stretch", hide_index=True)
