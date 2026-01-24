@@ -3,7 +3,7 @@
 
 ---
 
-## Español (prioridad)
+## Español
 
 ### ¿Qué es Centinel?
 Centinel es un sistema técnico independiente para observar y auditar datos electorales públicos en cualquier país. Registra, normaliza y verifica cambios en datos publicados para producir reportes técnicos reproducibles y trazables.
