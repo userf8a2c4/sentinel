@@ -4,9 +4,20 @@ import io
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 import streamlit as st
+
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+
+    PLOTLY_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency for charts
+    PLOTLY_AVAILABLE = False
+    px = None
+    go = None
 
 try:
     from reportlab.lib import colors
